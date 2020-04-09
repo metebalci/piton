@@ -2,60 +2,61 @@ Modifications
 =============
 cst-ast-compile-log branch includes logging for tokenization, parsing, AST generation, symtable generation, CFG (basic blocks) generation etc.
 
-When run with a simple program containing `print('hello, world!')`, the following output is generated:
+When run with a simple program containing `print('hello, world!')`, the following output is generated::
 
-```
-token: "print" -> 1/NAME
-token: "(" -> 7/LPAR
-token: "'hello, world!'" -> 3/STRING
-token: ")" -> 8/RPAR
-token: "" -> 4/NEWLINE
-token: "" -> 0/ENDMARKER
-token: "" -> 0/ENDMARKER
----- parse tree/CST ----
-(257/file_input
-  (269/stmt
-    (270/simple_stmt
-      (271/small_stmt
-        (272/expr_stmt
-          (274/testlist_star_expr
-            (305/test
-              (309/or_test
-                (310/and_test
-                  (311/not_test
-                    (312/comparison
-                      (315/expr
-                        (316/xor_expr
-                          (317/and_expr
-                            (318/shift_expr
-                              (319/arith_expr
-                                (320/term
-                                  (321/factor
-                                    (322/power
-                                      (323/atom_expr
-                                        (324/atom
-                                          (NAME/"print")
-                                        )
-                                        (326/trailer
-                                          (LPAR/)
-                                          (334/arglist
-                                            (335/argument
-                                              (305/test
-                                                (309/or_test
-                                                  (310/and_test
-                                                    (311/not_test
-                                                      (312/comparison
-                                                        (315/expr
-                                                          (316/xor_expr
-                                                            (317/and_expr
-                                                              (318/shift_expr
-                                                                (319/arith_expr
-                                                                  (320/term
-                                                                    (321/factor
-                                                                      (322/power
-                                                                        (323/atom_expr
-                                                                          (324/atom
-                                                                            (STRING/)
+  token: "print" -> 1/NAME
+  token: "(" -> 7/LPAR
+  token: "'hello, world!'" -> 3/STRING
+  token: ")" -> 8/RPAR
+  token: "" -> 4/NEWLINE
+  token: "" -> 0/ENDMARKER
+  token: "" -> 0/ENDMARKER
+
+  ---- parse tree/CST ----
+  (257/file_input
+    (269/stmt
+      (270/simple_stmt
+        (271/small_stmt
+          (272/expr_stmt
+            (274/testlist_star_expr
+              (305/test
+                (309/or_test
+                  (310/and_test
+                    (311/not_test
+                      (312/comparison
+                        (315/expr
+                          (316/xor_expr
+                            (317/and_expr
+                              (318/shift_expr
+                                (319/arith_expr
+                                  (320/term
+                                    (321/factor
+                                      (322/power
+                                        (323/atom_expr
+                                          (324/atom
+                                            (NAME/"print")
+                                          )
+                                          (326/trailer
+                                            (LPAR/)
+                                            (334/arglist
+                                              (335/argument
+                                                (305/test
+                                                  (309/or_test
+                                                    (310/and_test
+                                                      (311/not_test
+                                                        (312/comparison
+                                                          (315/expr
+                                                            (316/xor_expr
+                                                              (317/and_expr
+                                                                (318/shift_expr
+                                                                  (319/arith_expr
+                                                                    (320/term
+                                                                      (321/factor
+                                                                        (322/power
+                                                                          (323/atom_expr
+                                                                            (324/atom
+                                                                              (STRING/)
+                                                                            )
                                                                           )
                                                                         )
                                                                       )
@@ -72,8 +73,8 @@ token: "" -> 0/ENDMARKER
                                                 )
                                               )
                                             )
+                                            (RPAR/)
                                           )
-                                          (RPAR/)
                                         )
                                       )
                                     )
@@ -91,45 +92,43 @@ token: "" -> 0/ENDMARKER
             )
           )
         )
+        (NEWLINE/)
       )
-      (NEWLINE/)
     )
+    (NEWLINE/)
+    (ENDMARKER/)
   )
-  (NEWLINE/)
-  (ENDMARKER/)
-)
 
----- done. ----
+  ---- done. ----
 
----- AST ----
-filename: helloworld.py
-#0
- stmt.Expr
-  expr.Call
-   expr.Name: print
-   - args:
-    #0
-     expr.Str: hello, world!
-   - keywords:
----- done. ----
----- symtable ----
-filename: helloworld.py
-#0
- ste.name: top
- ste.type: module
-  symbol: print flags=1810[  ] scope=3[ global local ]
----- done. ----
----- basic blocks ----
-filename: helloworld.py
-<block 0>
-used: 4, depth: 0, offset: 0 
-  [00] line: 1, opcode: 101 arg: 0 
-  [01] line: 0, opcode: 100 arg: 0 
-  [02] line: 0, opcode: 131 arg: 1 
-  [03] line: 0, opcode: 1 
----- done. ----
-hello, world!
-```
+  ---- AST ----
+  filename: helloworld.py
+  #0
+   stmt.Expr
+    expr.Call
+     expr.Name: print
+     - args:
+      #0
+       expr.Str: hello, world!
+     - keywords:
+  ---- done. ----
+  ---- symtable ----
+  filename: helloworld.py
+  #0
+   ste.name: top
+   ste.type: module
+    symbol: print flags=1810[  ] scope=3[ global local ]
+  ---- done. ----
+  ---- basic blocks ----
+  filename: helloworld.py
+  <block 0>
+  used: 4, depth: 0, offset: 0 
+    [00] line: 1, opcode: 101 arg: 0 
+    [01] line: 0, opcode: 100 arg: 0 
+    [02] line: 0, opcode: 131 arg: 1 
+    [03] line: 0, opcode: 1 
+  ---- done. ----
+  hello, world!
 
 This is Python version 3.6.9
 ============================
