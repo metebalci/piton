@@ -1,6 +1,6 @@
 Modifications
 =============
-cst-ast-compile-log branch includes logging for tokenization, parsing, AST generation, symtable generation, CFG (basic blocks) generation etc.
+cst-ast-compile-log branch includes logging for tokenization, parsing, AST generation, symtable generation, CFG (basic blocks) generation etc. This branch is following official tag v3.6.9.
 
 When run with a simple program containing ``print('hello, world!')``, the following output is generated::
 
