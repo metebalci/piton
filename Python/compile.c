@@ -215,6 +215,9 @@ static int compiler_async_comprehension_generator(
 static PyCodeObject *assemble(struct compiler *, int addNone);
 static PyObject *__doc__;
 
+static void dump_basicblock(const basicblock *b);
+static void dump_instr(const struct instr *i);
+
 #define CAPSULE_NAME "compile.c compiler unit"
 
 PyObject *
@@ -339,6 +342,7 @@ PyAST_CompileObject(mod_ty mod, PyObject *filename, PyCompilerFlags *flags,
     }
 
     co = compiler_mod(&c, mod);
+
 
  finally:
     compiler_free(&c);
@@ -1512,6 +1516,24 @@ compiler_mod(struct compiler *c, mod_ty mod)
                      mod->kind);
         return 0;
     }
+
+    // mete
+    char *filename = PyUnicode_AsUTF8(c->c_filename);
+    if (strncmp(filename, "hello", 5) == 0) {
+      printf("---- basic blocks ----\n");
+      printf("filename: %s\n", filename);
+      basicblock *curr = c->u->u_blocks;
+      int i = 0;
+      while (curr != NULL) {
+        printf("<block %d>\n", i);
+        dump_basicblock(curr);
+        curr = curr->b_list;
+        i++;
+      }
+      printf("---- done. ----\n");
+    }
+    // ----
+    
     co = assemble(c, addNone);
     compiler_exit_scope(c);
     return co;
@@ -5229,7 +5251,7 @@ makecode(struct compiler *c, struct assembler *a)
 
 
 /* For debugging purposes only */
-#if 0
+#if 1
 static void
 dump_instr(const struct instr *i)
 {

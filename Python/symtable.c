@@ -305,9 +305,66 @@ PySymtable_BuildObject(mod_ty mod, PyObject *filename, PyFutureFeatures *future)
         PySymtable_Free(st);
         return NULL;
     }
+
+  
     /* Make the second symbol analysis pass */
-    if (symtable_analyze(st))
-        return st;
+    if (symtable_analyze(st)) {
+      // mete
+      char *filename = PyUnicode_AsUTF8(st->st_filename);
+      if (strncmp(filename, "hello", 5) == 0) {
+        printf("---- symtable ----\n");
+        printf("filename: %s\n", filename);
+        if (st->st_private != NULL) {
+          printf("class: %s\n", PyUnicode_AsUTF8(st->st_private));
+        }
+        PyObject* keys = PyDict_Keys(st->st_blocks);
+        for (int i = 0; i < PyList_GET_SIZE(keys); i++) {
+
+          printf("#%d\n", i);
+
+          PyObject *key = PyList_GET_ITEM(keys, i);
+          PySTEntryObject *v = (PySTEntryObject*) PyDict_GetItem(st->st_blocks, key);
+
+          printf(" ste.name: %s\n", PyUnicode_AsUTF8(v->ste_name));
+
+          printf(" ste.type: ");
+          if (v->ste_type == FunctionBlock) printf("function\n");
+          if (v->ste_type == ClassBlock) printf("class\n");
+          if (v->ste_type == ModuleBlock) printf("module\n");
+
+          PyObject* symbols = PyDict_Keys(v->ste_symbols);
+          for (int j = 0; j < PyList_GET_SIZE(symbols); j++) {
+
+            PyObject *name = PyList_GET_ITEM(symbols, j);
+            printf("  symbol: %s", PyUnicode_AsUTF8(name));
+
+            long flags = PyLong_AS_LONG(PyDict_GetItem(v->ste_symbols, name));
+            printf(" flags=%lx[ ", flags);
+            if (flags & DEF_GLOBAL) printf("global ");
+            if (flags & DEF_LOCAL) printf("local ");
+            if (flags & DEF_PARAM) printf("param ");
+            if (flags & DEF_NONLOCAL) printf("nonlocal ");
+            if (flags & DEF_NONLOCAL) printf("use ");
+            if (flags & DEF_FREE) printf("free ");
+            if (flags & DEF_FREE_CLASS) printf("free_class ");
+            if (flags & DEF_IMPORT) printf("import ");
+            if (flags & DEF_ANNOT) printf("annot ");
+
+            long scope = (flags >> SCOPE_OFFSET) & SCOPE_MASK;
+            printf(" ] scope=%lx[ ", scope);
+            if (scope & DEF_GLOBAL) printf("global ");
+            if (scope & DEF_LOCAL) printf("local ");
+            if (scope & DEF_PARAM) printf("param ");
+            if (scope & DEF_NONLOCAL) printf("nonlocal ");
+            printf("]\n");
+          }
+        }
+        printf("---- done. ----\n");
+      }
+      // ----
+      return st;
+    }
+   
     PySymtable_Free(st);
     return NULL;
  error:

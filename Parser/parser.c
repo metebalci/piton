@@ -337,49 +337,90 @@ PyParser_AddToken(parser_state *ps, int type, char *str,
 
 /* DEBUG OUTPUT */
 
+static inline void indent(int n)
+{
+  for (int i = 0; i < n; i++) printf("  ");
+}
+
+static inline char* dfaname(grammar *g, int type)
+{
+  for (int i = 0; i < g->g_ndfas; i++) {
+    if (g->g_dfa[i].d_type == type) {
+      return g->g_dfa[i].d_name;
+    }
+  }
+  return NULL;
+}
+
 void
-dumptree(grammar *g, node *n)
+dumptree_ex(grammar *g, node *n, int level)
 {
     int i;
 
-    if (n == NULL)
-        printf("NIL");
-    else {
+    if (n == NULL) {
+        indent(level);
+        printf("NIL\n");
+    } else {
         label l;
         l.lb_type = TYPE(n);
         l.lb_str = STR(n);
-        printf("%s", PyGrammar_LabelRepr(&l));
+        indent(level);
         if (ISNONTERMINAL(TYPE(n))) {
-            printf("(");
-            for (i = 0; i < NCH(n); i++) {
-                if (i > 0)
-                    printf(",");
-                dumptree(g, CHILD(n, i));
-            }
-            printf(")");
+          printf("%d/%s\n", TYPE(n), dfaname(g, TYPE(n)));
+        } else {
+          printf("%d/%s\n", TYPE(n), PyGrammar_LabelRepr(&l));
         }
+        if (ISNONTERMINAL(TYPE(n))) {
+            for (i = 0; i < NCH(n); i++) {
+                dumptree_ex(g, CHILD(n, i), level+1);
+            }
+        }
+    }
+}
+
+void
+dumptree(grammar *g, node *n)
+{
+  printf("-- dumping tree --\n");
+  dumptree_ex(g, n, 0);
+  printf("----- done. -----\n");
+}
+
+void
+showtree_ex(grammar *g, node *n, int level)
+{
+    if (n == NULL) {
+        return;
+    }
+    else if (ISNONTERMINAL(TYPE(n))) {
+        indent(level);
+        printf("(%d/%s\n", TYPE(n), dfaname(g, TYPE(n)));
+        for (int i = 0; i < NCH(n); i++) {
+            showtree_ex(g, CHILD(n, i), level+1);
+        }
+        indent(level);
+        printf(")\n");
+    }
+    else if (ISTERMINAL(TYPE(n))) {
+        indent(level);
+        printf("(%s/", _PyParser_TokenNames[TYPE(n)]);
+        if (TYPE(n) == NUMBER || TYPE(n) == NAME) {
+            printf("\"%s\"", STR(n));
+        }
+        printf(")\n");
+    }
+    else {
+        printf("?");
     }
 }
 
 void
 showtree(grammar *g, node *n)
 {
-    int i;
-
-    if (n == NULL)
-        return;
-    if (ISNONTERMINAL(TYPE(n))) {
-        for (i = 0; i < NCH(n); i++)
-            showtree(g, CHILD(n, i));
-    }
-    else if (ISTERMINAL(TYPE(n))) {
-        printf("%s", _PyParser_TokenNames[TYPE(n)]);
-        if (TYPE(n) == NUMBER || TYPE(n) == NAME)
-            printf("(%s)", STR(n));
-        printf(" ");
-    }
-    else
-        printf("? ");
+  printf("---- parse tree/CST ----\n");
+  showtree_ex(g, n, 0);
+  printf("\n");
+  printf("---- done. ----\n");
 }
 
 void

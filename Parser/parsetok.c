@@ -64,7 +64,16 @@ PyParser_ParseStringObject(const char *s, PyObject *filename,
     Py_INCREF(err_ret->filename);
     tok->filename = err_ret->filename;
 #endif
-    return parsetok(tok, g, start, err_ret, flags);
+    //return parsetok(tok, g, start, err_ret, flags);
+    //mete: dump tree before returning parse tree node
+    node *n = parsetok(tok, g, start, err_ret, flags);
+    char *cfilename = PyUnicode_AsUTF8(filename);
+    if (strncmp(cfilename, "hello", 5) == 0) {
+    //dumptree(g, n);
+      //printf("\n");
+      showtree(g, n);
+    }
+    return n;
 }
 
 node *
@@ -131,7 +140,18 @@ PyParser_ParseFileObject(FILE *fp, PyObject *filename,
     Py_INCREF(err_ret->filename);
     tok->filename = err_ret->filename;
 #endif
-    return parsetok(tok, g, start, err_ret, flags);
+    //return parsetok(tok, g, start, err_ret, flags);
+    //mete: dump tree before returning parse tree node
+    node *n = parsetok(tok, g, start, err_ret, flags);
+    //dumptree(g, n);
+    //printf("\n");
+    char *cfilename = PyUnicode_AsUTF8(filename);
+    if (strncmp(cfilename, "hello", 5) == 0) {
+      showtree(g, n);
+      printf("\n");
+    }
+    //----
+    return n;
 }
 
 node *

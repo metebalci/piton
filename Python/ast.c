@@ -701,6 +701,231 @@ ast_error(struct compiling *c, const node *n, const char *errmsg)
     return 0;
 }
 
+inline void indent(int level) {
+  for (int i = 0; i < level; i++) printf(" ");
+}
+
+static void ast_print_stmt(struct _stmt *s, int level); 
+static void ast_print_expr(struct _expr *e, int level);
+
+static void
+ast_print_identifier(identifier v)
+{
+  if (v == NULL) return;
+  printf("%s", PyUnicode_AsUTF8(v));
+}
+
+static void
+ast_print_string(string v)
+{
+  if (v == NULL) return;
+  printf("%s", PyUnicode_AsUTF8(v));
+}
+
+static void
+ast_print_operator(operator_ty op) 
+{
+  switch (op) {
+    case Add:
+      printf("Add");
+      break;
+    default:
+      printf("operator=%d", op);
+  }
+}
+
+static void
+ast_print_cmpop(cmpop_ty op) 
+{
+  switch (op) {
+    case Eq:
+      printf("Eq");
+      break;
+    default:
+      printf("cmpop=%d", op);
+  }
+}
+
+
+static void
+ast_print_stmts(asdl_seq *a, int level) 
+{
+    for (int i = 0; i < asdl_seq_LEN(a); i++) {
+      indent(level);
+      printf("#%d\n", i);
+      ast_print_stmt(asdl_seq_GET(a, i), level+1);
+    }
+}
+
+static void
+ast_print_exprs(asdl_seq *a, int level) 
+{
+    for (int i = 0; i < asdl_seq_LEN(a); i++) {
+      indent(level);
+      printf("#%d\n", i);
+      ast_print_expr(asdl_seq_GET(a, i), level+1);
+    }
+}
+
+static void
+ast_print_operators(asdl_int_seq *a, int level) 
+{
+    for (int i = 0; i < asdl_seq_LEN(a); i++) {
+      indent(level);
+      printf("#%d: ", i);
+      ast_print_operator(asdl_seq_GET(a, i));
+      printf("\n");
+    }
+}
+
+static void
+ast_print_cmpops(asdl_int_seq *a, int level) 
+{
+    for (int i = 0; i < asdl_seq_LEN(a); i++) {
+      indent(level);
+      printf("#%d: ", i);
+      ast_print_cmpop(asdl_seq_GET(a, i));
+      printf("\n");
+    }
+}
+
+static void
+ast_print_stmt(struct _stmt *s, int level) 
+{
+  if (s == NULL) return;
+  switch (s->kind) 
+  {
+    case FunctionDef_kind:
+      indent(level);
+      printf("stmt.FunctionDef\n");
+      level++;
+
+      indent(level);
+      printf("- identifier: ");
+      ast_print_identifier(s->v.FunctionDef.name);
+      printf("\n");
+
+      indent(level);
+      printf("- body:\n");
+      ast_print_stmts(s->v.FunctionDef.body, level+1);
+
+      indent(level);
+      printf("- decorator_list:\n");
+      ast_print_exprs(s->v.FunctionDef.decorator_list, level+1);
+
+      indent(level);
+      printf("- returns: ");
+      ast_print_expr(s->v.FunctionDef.returns, level);
+      printf("\n");
+
+      break;
+    case Return_kind:
+      indent(level);
+      printf("stmt.Return\n");
+      ast_print_expr(s->v.Return.value, level+1);
+      break;
+    case If_kind:
+      indent(level);
+      printf("stmt.If\n");
+      level++;
+
+      indent(level);
+      printf("- test:\n");
+      #undef test
+      ast_print_expr(s->v.If.test, level+1);
+      #define test 305
+
+      indent(level);
+      printf("- body:\n");
+      ast_print_stmts(s->v.If.body, level+1);
+
+      indent(level);
+      printf("- orelse:\n");
+      ast_print_stmts(s->v.If.orelse, level+1);
+      break;
+    case Expr_kind:
+      indent(level);
+      printf("stmt.Expr\n");
+      ast_print_expr(s->v.Expr.value, level+1);
+      break;
+    default:
+      indent(level);
+      printf("stmt: %d\n", s->kind);
+  }
+}
+
+static void
+ast_print_expr(struct _expr *e, int level) 
+{
+  if (e == NULL) return;
+  switch (e->kind) 
+  {
+    case BinOp_kind:
+      indent(level);
+      printf("expr.BinOp\n");
+      level++;
+
+      indent(level);
+      printf("- left:\n");
+      ast_print_expr(e->v.BinOp.left, level+1);
+
+      indent(level);
+      printf("- op: ");
+      ast_print_operator(e->v.BinOp.op);
+      printf("\n");
+
+      indent(level);
+      printf("- right:\n");
+      ast_print_expr(e->v.BinOp.right, level+1);
+      break;
+    case Compare_kind:
+      indent(level);
+      printf("expr.Compare\n");
+      level++;
+
+      indent(level);
+      printf("- left:\n");
+      ast_print_expr(e->v.Compare.left, level);
+
+      indent(level);
+      printf("- ops:\n");
+      ast_print_cmpops(e->v.Compare.ops, level);
+
+      indent(level);
+      printf("- comparators:\n");
+      ast_print_exprs(e->v.Compare.comparators, level);
+      break;
+    case Call_kind:
+      indent(level);
+      printf("expr.Call\n");
+      ast_print_expr(e->v.Call.func, level+1);
+      level++;
+      indent(level);
+      printf("- args:\n");
+      ast_print_exprs(e->v.Call.args, level+1);
+
+      indent(level);
+      printf("- keywords:\n");
+      ast_print_exprs(e->v.Call.keywords, level+1);
+      break;
+    case Num_kind:
+      indent(level);
+      printf("expr.Num: %ld\n", PyLong_AsLong(e->v.Num.n));
+      break;
+    case Str_kind:
+      indent(level);
+      printf("expr.Str: %s\n", PyUnicode_AsUTF8(e->v.Str.s));
+      break;
+    case Name_kind:
+      indent(level);
+      printf("expr.Name: %s\n", PyUnicode_AsUTF8(e->v.Name.id));
+      break;
+    default:
+      indent(level);
+      printf("expr: %d\n", e->kind);
+  }
+}
+
 /* num_stmts() returns number of contained statements.
 
    Use this routine to determine how big a sequence is needed for
@@ -873,6 +1098,28 @@ PyAST_FromNodeObject(const node *n, PyCompilerFlags *flags,
     if (c.c_normalize) {
         Py_DECREF(c.c_normalize);
     }
+    //mete
+    char *cfilename = PyUnicode_AsUTF8(filename);
+    if (strncmp(cfilename, "hello", 5) == 0) {
+      printf("---- AST ----\n");
+      printf("filename: %s\n", cfilename);
+      switch (res->kind) {
+        case Module_kind:
+          ast_print_stmts(res->v.Module.body, 0);
+          break;
+        case Interactive_kind:
+          ast_print_stmts(res->v.Interactive.body, 0);
+          break;
+        case Expression_kind:
+          ast_print_expr(res->v.Expression.body, 0);
+          break;
+        case Suite_kind:
+          ast_print_stmts(res->v.Suite.body, 0);
+          break;
+      }
+      printf("---- done. ----\n");
+    }
+    //----
     return res;
 }
 

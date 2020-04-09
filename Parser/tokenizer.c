@@ -1912,6 +1912,26 @@ int
 PyTokenizer_Get(struct tok_state *tok, char **p_start, char **p_end)
 {
     int result = tok_get(tok, p_start, p_end);
+    // mete
+    char *filename = PyUnicode_AsUTF8(tok->filename);
+    if (strncmp(filename, "hello", 5) == 0) {
+      printf("token: ");
+      char *start = *p_start;
+      char *end = *p_end;
+      printf("\"");
+      while (start < end) {
+        char c = *start;
+        if (c < 32 || c > 126) {
+          printf("\\x%02x", *start);
+        } else {
+          printf("%c", *start);
+        }
+        start++;
+      }
+      printf("\"");
+      printf(" -> %d/%s\n", result, _PyParser_TokenNames[result]);
+    }
+    // ---
     if (tok->decoding_erred) {
         result = ERRORTOKEN;
         tok->done = E_DECODE;
