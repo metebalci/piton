@@ -2,7 +2,7 @@ Modifications
 =============
 cst-ast-compile-log branch includes logging for tokenization, parsing, AST generation, symtable generation, CFG (basic blocks) generation etc.
 
-When run with a simple program containing `print('hello, world!')`, the following output is generated::
+When run with a simple program containing ``print('hello, world!')``, the following output is generated::
 
   token: "print" -> 1/NAME
   token: "(" -> 7/LPAR
